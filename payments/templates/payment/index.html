@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Result</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 350px;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .failed {
+            color: red;
+        }
+
+        .cancel {
+            color: orange;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+    {% if status == "success" %}
+
+        <h1 class="success">✅ Payment Successful</h1>
+        <p>Thank you for your payment!</p>
+
+        <p><b>Amount:</b> {{ amount }}</p>
+        <p><b>Transaction ID:</b> {{ pidx }}</p>
+
+    {% elif status == "cancelled" %}
+
+        <h1 class="cancel">⚠️ Payment Cancelled</h1>
+        <p>You cancelled the payment process.</p>
+
+        <p><b>Transaction ID:</b> {{ pidx }}</p>
+
+    {% else %}
+
+        <h1 class="failed">❌ Payment Failed</h1>
+        <p>Please try again.</p>
+
+        {% if message %}
+            <p>{{ message }}</p>
+        {% endif %}
+
+        <p><b>Transaction ID:</b> {{ pidx }}</p>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>
