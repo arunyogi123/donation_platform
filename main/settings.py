@@ -163,6 +163,7 @@ SIMPLE_JWT = {
 }
 # myproject/settings.py
 
+KHALTI_SECRET_KEY = "2d095a100f5a42a888025e50a4d78c8f"
 KHALTI_INIT_URL = "https://dev.khalti.com/api/v2/epayment/initiate/"
 KHALTI_VERIFY_URL = "https://dev.khalti.com/api/v2/epayment/lookup/"
 

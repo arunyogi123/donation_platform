@@ -5,8 +5,8 @@ from .models import Billing
 class BillingAdmin(admin.ModelAdmin):
     list_display = [
         'id',
-        'get_donor_email',  # Show donor email
-        'get_campaign_title',  # Show campaign
+        'get_donor_email',  
+        'get_campaign_title',  
         'payment_method',
         'status',
         'amount',
