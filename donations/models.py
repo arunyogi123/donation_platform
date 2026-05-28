@@ -49,16 +49,14 @@ class Donation(models.Model):
 
         super().save(*args, **kwargs)
 
-        # ✅ ONLY UPDATE CAMPAIGN ON FIRST SUCCESS
+        # ONLY UPDATE CAMPAIGN ON FIRST SUCCESS
         if (
             self.payment_status == PaymentType.SUCCESS
             and old_status != PaymentType.SUCCESS
         ):
-            # ✅ F() does the math in the DB — no stale reads, no overwrites
             Campaign.objects.filter(pk=self.campaign_id).update(
                 current_raised=F('current_raised') + self.amount
             )
-
 
     def __str__(self):
         return f"{self.donor} - {self.amount} ({self.payment_status})"
@@ -92,13 +90,14 @@ class RecurringDonation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # ✅ SINGLE save() — scheduling only
     def save(self, *args, **kwargs):
         if not self.next_run:
             if self.recurring_timing == RecurringType.WEEKLY:
                 self.next_run = timezone.now() + relativedelta(weeks=1)
+
             elif self.recurring_timing == RecurringType.MONTHLY:
                 self.next_run = timezone.now() + relativedelta(months=1)
+
             elif self.recurring_timing == RecurringType.YEARLY:
                 self.next_run = timezone.now() + relativedelta(years=1)
 
@@ -109,8 +108,10 @@ class RecurringDonation(models.Model):
 
         if self.recurring_timing == RecurringType.WEEKLY:
             return base + relativedelta(weeks=1)
+
         elif self.recurring_timing == RecurringType.MONTHLY:
             return base + relativedelta(months=1)
+
         elif self.recurring_timing == RecurringType.YEARLY:
             return base + relativedelta(years=1)
 
@@ -121,11 +122,7 @@ class RecurringDonation(models.Model):
         self.is_processing = False
         self.save()
 
-        # ✅ Atomic campaign update
-        Campaign.objects.filter(pk=self.campaign_id).update(
-            current_raised=F('current_raised') + self.amount
-        )
-
+        # ONLY CREATE HISTORY ON SUCCESS
         RecurringDonationHistory.objects.create(
             recurring_donation=self,
             donor=self.donor,
@@ -142,7 +139,11 @@ class RecurringDonation(models.Model):
         self.save()
 
     def __str__(self):
-        return f"{self.donor} - {self.campaign} - {self.amount} ({self.recurring_timing})"
+        return (
+            f"{self.donor} - "
+            f"{self.campaign} - "
+            f"{self.amount} ({self.recurring_timing})"
+        )
 
 
 class RecurringDonationHistory(models.Model):

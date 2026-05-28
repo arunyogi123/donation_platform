@@ -1,87 +1,65 @@
 from celery import shared_task
-from django.db import transaction
+from django.utils import timezone
 from uuid import uuid4
 
 from donations.models import Donation, RecurringDonation, PaymentType
 from receipts.models import Billing, BillingStatus, PaymentMethod
 
 
+# =============================================
+# BEAT CALLS THIS EVERY 10 SECONDS
+# Finds all due plans and processes them
+# =============================================
 @shared_task(name="donations.tasks.process_recurring_donations")
-def process_payment(donation_id=None, recurring_id=None, payment_status=PaymentType.SUCCESS):
+def process_recurring_donations():
 
-    with transaction.atomic():
+    due_plans = RecurringDonation.objects.filter(
+        is_active=True,
+        is_processing=False,
+        next_run__lte=timezone.now(),
+    )
 
-        # =====================================
-        # ONE-TIME DONATION
-        # =====================================
-        if donation_id:
+    for plan in due_plans:
 
-            donation = Donation.objects.select_related("campaign").get(id=donation_id)
+        # Mark as processing so it won't be picked up again
+        plan.is_processing = True
+        plan.save()
 
-            if payment_status == PaymentType.SUCCESS:
+        # Simulate payment — in real life this comes from payment gateway
+        payment_status = PaymentType.PENDING
 
-                donation.payment_status = PaymentType.SUCCESS
-                donation.save()  # ✅ Donation.save() already updates campaign.current_raised
+        if payment_status == PaymentType.SUCCESS:
 
-                Billing.objects.create(
-                    donation=donation,
-                    transaction_id=str(uuid4()),
-                    amount=donation.amount,
-                    currency=donation.currency,
-                    payment_method=PaymentMethod.KHALTI,
-                    status=BillingStatus.SUCCESS,
-                    is_recurring=False,
-                )
+            # Create donation record
+            donation = Donation.objects.create(
+                donor=plan.donor,
+                campaign=plan.campaign,
+                amount=plan.amount,
+                currency=plan.currency,
+                is_anonymous=plan.is_anonymous,
+                payment_status=PaymentType.SUCCESS,
+            )
 
-            else:
+            # Create billing record
+            Billing.objects.create(
+                donation=donation,
+                recurring_donation=plan,
+                transaction_id=str(uuid4()),
+                amount=plan.amount,
+                currency=plan.currency,
+                payment_method=PaymentMethod.KHALTI,
+                status=BillingStatus.SUCCESS,
+                is_recurring=True,
+            )
 
-                donation.payment_status = PaymentType.FAILURE
-                donation.save()
+            # Save history + advance next_run (defined in model)
+            plan.mark_success()
 
-                Billing.objects.create(
-                    donation=donation,
-                    transaction_id=str(uuid4()),
-                    amount=donation.amount,
-                    currency=donation.currency,
-                    payment_method=PaymentMethod.KHALTI,
-                    status=BillingStatus.FAILED,
-                    is_recurring=False,
-                )
+        elif payment_status == PaymentType.FAILURE:
+            # No billing, no history
+            plan.mark_failure()
 
-        # =====================================
-        # RECURRING DONATION
-        # =====================================
-        elif recurring_id:
-
-            plan = RecurringDonation.objects.select_related("campaign", "donor").get(id=recurring_id)
-
-            if payment_status == PaymentType.SUCCESS:
-
-                # ✅ Create the donation record
-                donation = Donation.objects.create(
-                    donor=plan.donor,
-                    campaign=plan.campaign,
-                    amount=plan.amount,
-                    currency=plan.currency,
-                    payment_status=PaymentType.SUCCESS,
-                    # ⚠️ set this BEFORE save so Donation.save() does NOT double-update campaign
-                )
-
-                # ✅ mark_success() handles: History + campaign.current_raised + next_run + last_run + is_processing
-                plan.mark_success()
-
-                # ✅ Billing stored only on SUCCESS
-                Billing.objects.create(
-                    donation=donation,
-                    recurring_donation=plan,
-                    transaction_id=str(uuid4()),
-                    amount=plan.amount,
-                    currency=plan.currency,
-                    payment_method=PaymentMethod.KHALTI,
-                    status=BillingStatus.SUCCESS,
-                    is_recurring=True,
-                )
-
-            else:
-                # ✅ FAILURE: nothing stored in Billing or History
-                plan.mark_failure()  # handles: last_payment_status + is_processing + save
+        elif payment_status == PaymentType.PENDING:
+            # No billing, no history
+            plan.is_processing = False
+            plan.save()
