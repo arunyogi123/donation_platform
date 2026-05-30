@@ -6,10 +6,6 @@ from donations.models import Donation, RecurringDonation, PaymentType
 from receipts.models import Billing, BillingStatus, PaymentMethod
 
 
-# =============================================
-# BEAT CALLS THIS EVERY 10 SECONDS
-# Finds all due plans and processes them
-# =============================================
 @shared_task(name="donations.tasks.process_recurring_donations")
 def process_recurring_donations():
 
@@ -20,17 +16,20 @@ def process_recurring_donations():
     )
 
     for plan in due_plans:
-
-        # Mark as processing so it won't be picked up again
         plan.is_processing = True
         plan.save()
 
-        # Simulate payment — in real life this comes from payment gateway
-        payment_status = PaymentType.PENDING
+        try:
+            # TODO: replace with real Khalti auto-debit API call in production
+            # response = KhaltiPayment.charge_recurring(plan.khalti_token, plan.amount)
+            # payment_success = response.get("status") == "Completed"
+            payment_success = True  # ← hardcoded for testing
 
-        if payment_status == PaymentType.SUCCESS:
+        except Exception:
+            payment_success = False
 
-            # Create donation record
+        if payment_success:
+            # 1. Create donation
             donation = Donation.objects.create(
                 donor=plan.donor,
                 campaign=plan.campaign,
@@ -40,7 +39,7 @@ def process_recurring_donations():
                 payment_status=PaymentType.SUCCESS,
             )
 
-            # Create billing record
+            # 2. Create billing ONLY on success
             Billing.objects.create(
                 donation=donation,
                 recurring_donation=plan,
@@ -52,14 +51,11 @@ def process_recurring_donations():
                 is_recurring=True,
             )
 
-            # Save history + advance next_run (defined in model)
+            # 3. Save history + advance next_run
             plan.mark_success()
 
-        elif payment_status == PaymentType.FAILURE:
-            # No billing, no history
-            plan.mark_failure()
-
-        elif payment_status == PaymentType.PENDING:
-            # No billing, no history
+        else:
+            # Payment failed or pending — release lock, retry next cycle
             plan.is_processing = False
+            plan.last_payment_status = PaymentType.FAILURE
             plan.save()

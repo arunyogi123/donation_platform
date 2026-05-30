@@ -1,7 +1,9 @@
 from django.urls import path
-from .views import get_payment_url_by_id, callback_khalti
+from .views import initiate_donation, donation_callback, initiate_recurring, recurring_callback
 
 urlpatterns = [
-    path('invoice/<int:id>/', get_payment_url_by_id),
-    path('callback/', callback_khalti),
+    path('donate/<int:donation_id>/', initiate_donation),
+    path('callback/', donation_callback),
+    path('recurring/<int:recurring_id>/', initiate_recurring),
+    path('recurring/callback/', recurring_callback),
 ]

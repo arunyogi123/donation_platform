@@ -23,10 +23,6 @@ class DonationView(GenericAPIView):
     )
     def get(self, request, *args, **kwargs):
 
-        # # ADD HERE (debug)
-        # print("USER:", request.user)
-        # print("AUTH:", request.user.is_authenticated)
-        # print("STAFF:", request.user.is_staff)
 
         donations = Donation.objects.filter(campaign=kwargs["campaign"])
 
@@ -52,26 +48,13 @@ class DonationView(GenericAPIView):
             donation = serializer.save(
                 donor=request.user,
                 campaign_id=campaign,
-                payment_status='PENDING'   # ← not SUCCESS
+                payment_status='PENDING'
             )
 
-            # Step 2 - Create billing as PENDING (no payment yet)
-            billing = Billing.objects.create(
-                donation=donation,
-                recurring_donation=None,
-                transaction_id=None,        # ← pidx comes later
-                amount=donation.amount,
-                currency=donation.currency,
-                status=BillingStatus.PENDING,  # ← not SUCCESS
-                payment_method=PaymentMethod.KHALTI,
-                is_recurring=False,
-            )
-
-            # Step 3 - Return billing_id, frontend calls /invoice/{id}/ next
+            # Step 2 - Return donation_id so frontend can initiate Khalti
             return Response({
                 "message": "Donation created, proceed to payment",
                 "donation_id": donation.id,
-                "billing_id": billing.id,
             }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

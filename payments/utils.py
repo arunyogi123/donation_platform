@@ -7,7 +7,7 @@ class KhaltiPayment:
     @staticmethod
     def initiate_payment(**data):
         payload = {
-            "return_url": "http://127.0.0.1:8000/api/payments/callback/",
+            "return_url": data.get("return_url", "http://127.0.0.1:8000/api/payments/callback/"),
             "website_url": "http://localhost:3000/",
             "amount": int(float(data.get("amount"))) * 100,
             "purchase_order_id": str(data.get("donation_id")),
@@ -28,7 +28,7 @@ class KhaltiPayment:
             settings.KHALTI_INIT_URL,
             json=payload,
             headers=headers,
-            timeout=30  
+            timeout=30
         )
         response.raise_for_status()
         return response.json()
@@ -44,7 +44,7 @@ class KhaltiPayment:
             settings.KHALTI_VERIFY_URL,
             json={"pidx": pidx},
             headers=headers,
-            timeout=30  # ✅ add this
+            timeout=30
         )
         response.raise_for_status()
         return response.json()
