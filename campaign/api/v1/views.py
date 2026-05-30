@@ -17,22 +17,14 @@ from campaign.api.v1.serialziers import (
 )
 
 
-class CampaignView(ListAPIView):
+class CampaignView(GenericAPIView):
     serializer_class = CampaignSerializers
 
-    def get_queryset(self):
-        return Campaign.objects.filter(
-            is_approved=True,
-            is_active=True
-        )
-
-    @extend_schema(
-        responses=CampaignSerializers,
-        summary="List only approved and active campaigns",
-        tags=["Campaign"]
-    )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+    @extend_schema(tags=["Campaign"], summary="List approved and active campaigns")
+    def get(self, request):
+        campaigns = Campaign.objects.filter(is_approved=True, is_active=True)
+        serializer = CampaignSerializers(campaigns, many=True)
+        return Response(serializer.data)
 
     @extend_schema(
         request=CampaignSerializers,
