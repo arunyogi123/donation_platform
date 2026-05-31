@@ -27,7 +27,7 @@ class Billing(models.Model):
         on_delete=models.CASCADE,
         related_name="billings",
         null=True,
-        blank=True
+        blank=True,
     )
 
     recurring_donation = models.ForeignKey(
@@ -35,34 +35,25 @@ class Billing(models.Model):
         on_delete=models.CASCADE,
         related_name="billings",
         null=True,
-        blank=True
+        blank=True,
     )
 
     transaction_id = models.CharField(
-        max_length=100,
-        unique=True,
-        null=True,
-        blank=True
+        max_length=100, unique=True, null=True, blank=True
     )
 
     amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     currency = models.CharField(
-        max_length=5,
-        choices=CurrencyType.choices,
-        default=CurrencyType.NPR
+        max_length=5, choices=CurrencyType.choices, default=CurrencyType.NPR
     )
 
     payment_method = models.CharField(
-        max_length=10,
-        choices=PaymentMethod.choices,
-        default=PaymentMethod.KHALTI
+        max_length=10, choices=PaymentMethod.choices, default=PaymentMethod.KHALTI
     )
 
     status = models.CharField(
-        max_length=10,
-        choices=BillingStatus.choices,
-        default=BillingStatus.PENDING
+        max_length=10, choices=BillingStatus.choices, default=BillingStatus.PENDING
     )
 
     is_recurring = models.BooleanField(default=False)
