@@ -3,16 +3,7 @@ from .models import Billing
 
 @admin.register(Billing)
 class BillingAdmin(admin.ModelAdmin):
-    list_display = [
-        'id',
-        'get_donor_email',  
-        'get_campaign_title',  
-        'payment_method',
-        'status',
-        'amount',
-        'is_recurring',
-        'created_at'
-    ]
+    list_display = ['id','get_donor_email',  'get_campaign_title',  'payment_method','status','amount','is_recurring','created_at']
     list_filter = ['status', 'payment_method', 'is_recurring']
     
     def get_donor_email(self, obj):

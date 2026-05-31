@@ -12,7 +12,7 @@ from drf_spectacular.utils import extend_schema
 from account.api.v1.serialziers import (
     UserSerializer,
     ProfileSerializer,
-    LoginSerializer
+    LoginSerializer,
 )
 
 User = get_user_model()
@@ -21,11 +21,7 @@ User = get_user_model()
 # 🔐 REGISTER
 class RegisterAPIView(APIView):
 
-    @extend_schema(
-        request=UserSerializer,
-        responses=UserSerializer,
-        tags=["Auth"]
-    )
+    @extend_schema(request=UserSerializer, responses=UserSerializer, tags=["Auth"])
     def post(self, request):
 
         serializer = UserSerializer(data=request.data)
@@ -33,13 +29,16 @@ class RegisterAPIView(APIView):
         if serializer.is_valid():
             user = serializer.save()
 
-            return Response({
-                "message": "User registered successfully",
-                "user": UserSerializer(user).data
-            }, status=status.HTTP_201_CREATED)
+            return Response(
+                {
+                    "message": "User registered successfully",
+                    "user": UserSerializer(user).data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 class LoginView(APIView):
     serializer_class = LoginSerializer
@@ -51,28 +50,23 @@ class LoginView(APIView):
             email = serializer.validated_data["email"]
             password = serializer.validated_data["password"]
 
-            user = authenticate(
-                request,
-                email=email,
-                password=password
-            )
+            user = authenticate(request, email=email, password=password)
 
             if user is not None:
                 refresh = RefreshToken.for_user(user)
 
-                return Response({
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token),
-                })
+                return Response(
+                    {
+                        "refresh": str(refresh),
+                        "access": str(refresh.access_token),
+                    }
+                )
 
-            return Response({
-                "error": "Invalid credentials"
-            }, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                {"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
+            )
 
         return Response(serializer.errors, status=400)
-
-
-
 
 
 # 👤 PROFILE
@@ -80,18 +74,14 @@ class ProfileAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(
-        responses=ProfileSerializer,
-        tags=["Profile"]
-    )
+    @extend_schema(responses=ProfileSerializer, tags=["Profile"])
     def get(self, request):
 
         profile = getattr(request.user, "profile", None)
 
         if not profile:
             return Response(
-                {"error": "Profile not found"},
-                status=status.HTTP_404_NOT_FOUND
+                {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
         return Response(ProfileSerializer(profile).data)
