@@ -1,83 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Payment Result</title>
-
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial;
-            background: #f4f4f4;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            padding: 2rem;
         }
 
         .card {
             background: white;
-            padding: 40px;
-            border-radius: 12px;
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 420px;
             text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            width: 350px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
         }
 
-        .success {
-            color: green;
+        .icon-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            font-size: 36px;
         }
 
-        .failed {
-            color: red;
+        .icon-success {
+            background: #e6f9f0;
         }
 
-        .cancel {
-            color: orange;
+        .icon-cancelled {
+            background: #fff8e6;
+        }
+
+        .icon-failed {
+            background: #feeaea;
         }
 
         h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 2rem;
+        }
+
+        .info-row {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 0.875rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
         }
 
-        p {
-            color: #555;
+        .info-label {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111;
+        }
+
+        .info-value.mono {
+            font-family: monospace;
+            font-size: 12px;
         }
     </style>
 </head>
 
 <body>
+    <div class="card">
 
-<div class="card">
+        {% if status == "success" %}
+        <div class="icon-circle icon-success">✅</div>
+        <h1 style="color: #1a8a56;">Payment successful</h1>
+        <p class="subtitle">Thank you for your donation!</p>
+        <div class="info-row">
+            <span class="info-label">Amount</span>
+            <span class="info-value">Rs. {{ amount }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Transaction ID</span>
+            <span class="info-value mono">{{ transaction_id }}</span>
+        </div>
 
-    {% if status == "success" %}
+        {% elif status == "cancelled" %}
+        <div class="icon-circle icon-cancelled">⚠️</div>
+        <h1 style="color: #b87d00;">Payment cancelled</h1>
+        <p class="subtitle">You cancelled the payment process.</p>
+        <div class="info-row">
+            <span class="info-label">Transaction ID</span>
+            <span class="info-value mono">{{ transaction_id }}</span>
+        </div>
 
-        <h1 class="success">✅ Payment Successful</h1>
-        <p>Thank you for your payment!</p>
-
-        <p><b>Amount:</b> {{ amount }}</p>
-        <p><b>Transaction ID:</b> {{ pidx }}</p>
-
-    {% elif status == "cancelled" %}
-
-        <h1 class="cancel">⚠️ Payment Cancelled</h1>
-        <p>You cancelled the payment process.</p>
-
-        <p><b>Transaction ID:</b> {{ pidx }}</p>
-
-    {% else %}
-
-        <h1 class="failed">❌ Payment Failed</h1>
-        <p>Please try again.</p>
-
+        {% else %}
+        <div class="icon-circle icon-failed">❌</div>
+        <h1 style="color: #c0392b;">Payment failed</h1>
+        <p class="subtitle">Something went wrong. Please try again.</p>
         {% if message %}
-            <p>{{ message }}</p>
+        <div class="info-row">
+            <span class="info-label">Reason</span>
+            <span class="info-value">{{ message }}</span>
+        </div>
         {% endif %}
 
-        <p><b>Transaction ID:</b> {{ pidx }}</p>
+        {% endif %}
 
-    {% endif %}
-
-</div>
-
+    </div>
 </body>
+
 </html>
