@@ -120,8 +120,7 @@ class RecurringDonationView(GenericAPIView):
         if serializer.is_valid():
             serializer.save(
                 donor=request.user,
-                next_run=timezone.now(),  
-                is_active=True,
+                
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
