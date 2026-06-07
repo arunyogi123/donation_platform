@@ -19,14 +19,7 @@ def process_recurring_donations():
         plan.is_processing = True
         plan.save()
 
-        try:
-            # TODO: replace with real Khalti auto-debit API call in production
-            # response = KhaltiPayment.charge_recurring(plan.khalti_token, plan.amount)
-            # payment_success = response.get("status") == "Completed"
-            payment_success = True  # ← hardcoded for testing
-
-        except Exception:
-            payment_success = False
+        payment_success = True  # ← hardcoded for testing
 
         if payment_success:
             # 1. Create donation
