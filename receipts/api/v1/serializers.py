@@ -17,7 +17,6 @@ class BillingSerializer(serializers.ModelSerializer):
         if request and not request.user.is_staff:
             data["transaction_id"] = "****"
 
-        # FIX DONOR FIELD SAFELY
         if instance.donation:
             data["donor"] = instance.donation.donor.username
         elif instance.recurring_donation:
