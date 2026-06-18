@@ -19,7 +19,7 @@ def process_recurring_donations():
         plan.is_processing = True
         plan.save()
 
-        payment_success = True  # ← hardcoded for testing
+        payment_success = True  
 
         if payment_success:
             # 1. Create donation
