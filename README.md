@@ -17,6 +17,7 @@ Each campaign represents a specific cause and includes details such as its objec
 * 🔐 User authentication (registration, login, and logout)
 * 📋 Browse and view active fundraising campaigns
 * 💳 Secure donation system for individual campaigns
+      * Anonymous donation option
 * 📊 Real-time tracking of funds raised
 * 🧾 Automatic receipt generation after successful donations
 * 👤 Donor donation history
@@ -75,11 +76,4 @@ This platform reflects the functionality of modern crowdfunding and charitable d
 
 ---
 
-## 📖 Future Enhancements
 
-* Anonymous donation option
-* Campaign search and filtering
-* Donor leaderboard
-* Multi-currency support
-* Analytics dashboard for administrators
-* Mobile-responsive enhancements
