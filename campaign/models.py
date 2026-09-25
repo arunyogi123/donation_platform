@@ -15,18 +15,25 @@ class CategoryType(models.TextChoices):
 
 
 class Campaign(models.Model):
-    title = models.CharField(max_length=30, unique=True)
-    description = models.CharField(max_length=50)
+    title = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True)
     category = models.CharField(
         max_length=20, choices=CategoryType.choices, default=CategoryType.HEALTH
     )
-    goal_amount = models.DecimalField(max_digits=20, decimal_places=5)
+    goal_amount = models.DecimalField(max_digits=20, decimal_places=2)
     current_raised = models.DecimalField(
         max_digits=20,
         decimal_places=2,
         default=Decimal("0.00"),
         validators=[MinValueValidator(Decimal("0.00"))],
     )
+    image = models.ImageField(upload_to="campaigns/", blank=True, null=True)
+    image_url = models.CharField(max_length=500, blank=True, null=True)
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="campaigns"
+    )
+    organizer_name = models.CharField(max_length=150, blank=True, null=True)
+    location = models.CharField(max_length=150, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_approved = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -34,6 +41,7 @@ class Campaign(models.Model):
 
     def __str__(self):
         return self.title
+
 
 
 class CurrencyType(models.TextChoices):
