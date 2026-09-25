@@ -18,15 +18,20 @@ def billing_detail(request, id):
 
     return Response(serializer.data)
 
+from django.db.models import Q
+
 @api_view(['GET'])
 def billing_list(request):
-
-    billings = Billing.objects.all().order_by('-id')
+    if request.user.is_authenticated and not request.user.is_staff:
+        billings = Billing.objects.filter(
+            Q(donation__donor=request.user) | Q(recurring_donation__donor=request.user)
+        ).order_by('-id')
+    else:
+        billings = Billing.objects.all().order_by('-id')
 
     serializer = BillingSerializer(
         billings,
         many=True,
         context={"request": request}
     )
-
     return Response(serializer.data)
