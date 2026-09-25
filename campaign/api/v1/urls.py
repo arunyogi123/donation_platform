@@ -1,8 +1,20 @@
 from django.urls import path
-from campaign.api.v1.views import SubscriptionView,update_subscription,SubscrptionDelete,CampaignView,CampaignDelete,CampaigUpdate,DocumentView,DocumentManage
+from campaign.api.v1.views import (
+    SubscriptionView,
+    update_subscription,
+    SubscrptionDelete,
+    CampaignView,
+    CampaignDetailView,
+    CampaignDelete,
+    CampaigUpdate,
+    DocumentView,
+    DocumentManage,
+)
 
 urlpatterns = [
     path('campaign-action/', CampaignView.as_view(), name="create-list"),
+    path('campaign-action/<int:id>/', CampaignDetailView.as_view(), name="campaign-detail"),
+
     path('campaign-delete/<int:id>/', CampaignDelete.as_view(), name="delete-camapaign"),
     path('campaign-update/<int:id>/', CampaigUpdate.as_view(), name="update-camapaign"),
     path('subscription-plan/', SubscriptionView.as_view(), name="subscription-list-create"),
