@@ -89,6 +89,21 @@ class DonationUpdate(GenericAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class MyDonationsView(GenericAPIView):
+    serializer_class = DonationSerializer
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses=DonationSerializer,
+        summary="Get logged-in user donations",
+        tags=["Donation"],
+    )
+    def get(self, request):
+        donations = Donation.objects.filter(donor=request.user).order_by("-created_at")
+        serializer = DonationSerializer(donations, many=True, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class RecurringDonationView(GenericAPIView):
     queryset = RecurringDonation.objects.all()
     serializer_class = RecurringSerializer
@@ -101,8 +116,11 @@ class RecurringDonationView(GenericAPIView):
         tags=["Recurring Donation"],
     )
     def get(self, request):
-        plan = RecurringDonation.objects.all()
-        serializer = RecurringSerializer(plan, many=True)
+        if request.user.is_staff:
+            donations = RecurringDonation.objects.all().order_by("-id")
+        else:
+            donations = RecurringDonation.objects.filter(donor=request.user).order_by("-id")
+        serializer = RecurringSerializer(donations, many=True, context={"request": request})
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -118,13 +136,16 @@ class RecurringDonationView(GenericAPIView):
         )
 
         if serializer.is_valid():
-            serializer.save(
+            recurring = serializer.save(
                 donor=request.user,
-                
             )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            data = dict(serializer.data)
+            data["recurring_id"] = recurring.id
+            data["message"] = "Recurring donation created, proceed to payment"
+            return Response(data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class RecurringManage(GenericAPIView):
     queryset=RecurringDonation.objects.all()

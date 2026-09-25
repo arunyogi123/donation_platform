@@ -1,10 +1,17 @@
 from django.urls import path
-from donations.api.v1.views import DonationView,DonationUpdate,RecurringDonationView,RecurringManage
+from donations.api.v1.views import (
+    DonationView,
+    DonationUpdate,
+    MyDonationsView,
+    RecurringDonationView,
+    RecurringManage,
+)
 
 urlpatterns = [
     path("campaign-action/<int:campaign>/", DonationView.as_view(), name="see-data"),
-     path("donations/<int:id>/", DonationUpdate.as_view()),
-    path("recurring-view",RecurringDonationView.as_view(),name="view=data"),
-    path("recurring-manage/<int:id>/", RecurringManage.as_view(), name="update-delete")
-    
+    path("my-donations/", MyDonationsView.as_view(), name="my-donations"),
+    path("donations/<int:id>/", DonationUpdate.as_view()),
+    path("recurring-view", RecurringDonationView.as_view(), name="recurring-view-noslash"),
+    path("recurring-view/", RecurringDonationView.as_view(), name="recurring-view"),
+    path("recurring-manage/<int:id>/", RecurringManage.as_view(), name="update-delete"),
 ]
